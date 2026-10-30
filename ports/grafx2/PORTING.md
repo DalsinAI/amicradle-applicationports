@@ -16,7 +16,7 @@ GrafX2 is a high-value standalone pixel-art and bitmap editor. Existing Amiga po
 | AmigaOS 3.x, 68k RTG | Official downloads page lists version 2.8 (24 October 2022). | Closest CPU and OS ABI reference; inspect the package/source patch for OS3 build and RTG details. |
 | AmigaOS 4, PPC | Official downloads page lists version 2.0.874 (2009). | Historical packaging and platform glue only. |
 | MorphOS, PPC | MorphOS Storage has GrafX2 2.9 by BeWorld. Its readme says the 23 September 2026 update follows upstream's latest commit and builds with SDL2, the MorphOS 3.20 SDK, and Lua 5.4. | Current feature/packaging reference; not a native backend to carry forward. |
-| AROS | Backlog prior art records an AROS GrafX2 2.9 patch. | Mine changes for portability fixes and platform assumptions before writing replacements. |
+| AROS x86_64 (AROS One ABIv11 first; mainline ABIv1 secondary) | [Current AROS port project](https://github.com/tomaszstaniak/aros-grafx2) pins upstream commit `f84cb09dc59d706d6e7b28778b01ba911f52298c` and maintains patches `0001`–`0012`. It retains SDL2. Patches include PNG stdio callbacks, software-renderer preference, AROS file paths/locks, no-console startup and SDL2 mouse/key fallbacks. | Strong behavior and packaging reference, but it targets x86_64 and keeps SDL2; it is not the m68k AROS/native Open-family implementation. Mine the non-SDL portability changes and translate the needed input/display behavior to native APIs. |
 
 The current upstream `src/Makefile` has legacy AmigaOS 3/4, AROS, and MorphOS branches, but those recipes select SDL 1.2 (`sdl-config`) and SDL_image. The current MorphOS package uses SDL2. These are useful build-history clues; none is the approved AmigaChrome implementation.
 
