@@ -9,7 +9,18 @@
 
 GrafX2 is a high-value standalone pixel-art and bitmap editor. Existing Amiga ports establish that the application and workflow are viable, but their SDL dependencies do not meet this port's native Open-family target.
 
-## Prior-art review
+## Baseline: AmigaOS 4 source lineage
+
+Use the upstream AmigaOS 4 adaptation as the source of Amiga platform behavior to recover, then carry those changes forward into the pinned 2.9 code and retarget them to 68k AmigaOS 3.x / m68k AROS. The baseline is source history, not the PPC binary or its SDL runtime.
+
+- Upstream commit [`ff9fc1633bd87f79eedf3611d1a0412d89fa0d83`](https://gitlab.com/GrafX2/grafX2/-/commit/ff9fc1633bd87f79eedf3611d1a0412d89fa0d83), 14 October 2008: "AmigaOS 4 port from xeron." It adapts OS-specific filesystem/volume behavior and guards Windows-only code. The port still uses SDL 1.2 and SDL_image.
+- Upstream commit [`cf54d4a4603c20a42d25975cdd4e0068c2d620fe`](https://gitlab.com/GrafX2/grafX2/-/commit/cf54d4a4603c20a42d25975cdd4e0068c2d620fe), 25 October 2008: introduces the file selector's drive/volume list, with the OS4 volume enumeration hook called out for implementation.
+- The official OS4 archive is GrafX2 **2.0.874**, credited to Peter Gordon, July 2009. The archive is a PPC binary package; the source of the OS4 adaptation is the upstream Git history above.
+- In 2018, an OS4 community update based on a later 2.5-era source needed only a small set of OS4 compile/runtime changes (stack cookie, PROGDIR paths); later mouse cursor fixes were discussed. This corroborates that the Amiga-specific layer is comparatively narrow.
+
+Treat this OS4 lineage as the porting baseline: first recover and map its Amiga-specific behavior onto current source, then replace SDL screen/input/image glue with native APIs. Keep provenance and original GPL notices for any adapted code.
+
+## Other Amiga-family prior art
 
 | Platform / package | Evidence | Reuse value |
 | --- | --- | --- |
@@ -33,7 +44,7 @@ Do not add a compatibility layer that makes GrafX2 appear to use SDL while retai
 
 ## Implementation sequence
 
-1. **Recover prior-art patches:** obtain and diff the AROS 2.9 patch and the OS3 2.8 package/source against the pinned upstream. Record source URLs, original authors, licensing, and reusable changes.
+1. **Rebase the OS4 lineage:** diff the OS4 source commits and 2.8 OS3 package changes against the pinned 2.9 source. Preserve useful Amiga path, volume, stack and file-selector behavior; record source URLs, original authors and GPL provenance. Consult the AROS x86_64 patch series only for extra behavioral edge cases.
 2. **Freeze the backend contract:** define screen open/close, indexed pixel access, palette changes, dirty-rectangle presentation, mouse/keyboard translation, mode selection, clipboard/file-drop behavior, and error dialogs.
 3. **Add the native screen path:** use an 8-bit indexed bitmap where available, preserving GrafX2's palette semantics; prove full and dirty updates, resize/mode changes, and restoration on exit.
 4. **Add native input and OS integration:** IDCMP input mapping, focus-loss handling, file requester integration, and safe window/screen teardown.
@@ -53,6 +64,8 @@ Do not add a compatibility layer that makes GrafX2 appear to use SDL while retai
 
 - [GrafX2 upstream source](https://gitlab.com/GrafX2/grafX2)
 - [Official GrafX2 downloads](http://grafx2.chez.com/index.php?static3/downloads)
+- [Original OS4 source adaptation](https://gitlab.com/GrafX2/grafX2/-/commit/ff9fc1633bd87f79eedf3611d1a0412d89fa0d83)
+- [OS4 drive / volume selector change](https://gitlab.com/GrafX2/grafX2/-/commit/cf54d4a4603c20a42d25975cdd4e0068c2d620fe)
 - [MorphOS Storage GrafX2 2.9 package](https://www.morphos-storage.net/?id=2468088)
 - [MorphOS package readme](https://www.morphos-storage.net/Graphics/Draw/GrafX2_2.9.readme)
 - AROS patch location is not yet captured in the repository; find and pin it during step 1.
