@@ -2,7 +2,7 @@
 
 ## Intake status
 
-**State:** source intake and backend design; implementation has not started.  
+**State:** native screen backend prototype; integration and runtime qualification remain open.  
 **Target:** AmigaOS 3.x on AC090 / 68040 + FPU, then m68k AROS.  
 **Upstream:** [GrafX2](https://gitlab.com/GrafX2/grafX2), GPL-2.0-only.  
 **Source pin:** `678a0f54ea7f3eeebc3fa4135213ea63f45a28bd` (upstream master; checkout retrieved 30 October 2026, GrafX2 2.9 line).
@@ -75,3 +75,11 @@ The linked `daletop` test device is offline in this workspace, so the OS4 compil
 - [MorphOS Storage GrafX2 2.9 package](https://www.morphos-storage.net/?id=2468088)
 - [MorphOS package readme](https://www.morphos-storage.net/Graphics/Draw/GrafX2_2.9.readme)
 - AROS patch location is not yet captured in the repository; find and pin it during step 1.
+
+
+## Current implementation checkpoint
+
+- Added `patches/0001-native-screen-backend-prototype.patch`: an initial Intuition/graphics.library screen backend with an 8-bit chunky buffer, palette updates and dirty-region presentation through `WriteChunkyPixels`.
+- The backend translation unit compiles with OpenAmigaGCC 16.2.0-open3 and the NDK 3.2 R4 headers for `-m68040 -m68881 -mcrt=nix20`.
+- This is **not yet an integrated GrafX2 build**. Startup, mode enumeration, SDL image loading and SDL-based input/event code still need native implementations or conditional paths. Drag and drop, icon handling and pointer warping are also placeholders in this prototype.
+- The AC460/Sam460ex OS4.1 test guest is documented on `daletop`, but that remote device was offline at the last availability check (30 October 2026). No target runtime test has been run.
