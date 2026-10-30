@@ -43,7 +43,7 @@ Confirmed AROS application prior art includes:
 - **MilkyTracker 1.05.01**
 - **ScreenRecorder**
 - **Radium**
-- **GrafX2 2.9**
+- **GrafX2 2.9** — [current AROS port project](https://github.com/tomaszstaniak/aros-grafx2) targets x86_64 and keeps SDL2; useful portability and behavior patches, not a native m68k port.
 - **LodePaint**
 - **ZunePaint**
 - **ZuneView**
