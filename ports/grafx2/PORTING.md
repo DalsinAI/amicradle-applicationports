@@ -42,6 +42,12 @@ The current upstream `src/Makefile` has legacy AmigaOS 3/4, AROS, and MorphOS br
 
 Do not add a compatibility layer that makes GrafX2 appear to use SDL while retaining SDL as a runtime dependency. The port should have an explicit native Amiga API selection in the build.
 
+## Available OS4 test target
+
+AmigaChrome's AC460/Sam460ex work records AmigaOS 4.1 booting to Workbench under the PPC460 JIT. The same project has an experimental `os4` GCC16 stove and OS4 SDK 54.25, fetched on the test machine and not committed.
+
+The linked `daletop` test device is offline in this workspace, so the OS4 compile/run gate cannot be executed here yet. When it is reachable, build the current port against that stove and run the OS4-derived code path in the AC460 guest. This is a useful first smoke test for Amiga-specific file/volume behavior; it does not qualify the 68k ABI or the final native Open-family backend.
+
 ## Implementation sequence
 
 1. **Rebase the OS4 lineage:** diff the OS4 source commits and 2.8 OS3 package changes against the pinned 2.9 source. Preserve useful Amiga path, volume, stack and file-selector behavior; record source URLs, original authors and GPL provenance. Consult the AROS x86_64 patch series only for extra behavioral edge cases.
