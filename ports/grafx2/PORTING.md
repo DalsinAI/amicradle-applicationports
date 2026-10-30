@@ -5,7 +5,7 @@
 **State:** source intake and backend design; implementation has not started.  
 **Target:** AmigaOS 3.x on AC090 / 68040 + FPU, then m68k AROS.  
 **Upstream:** [GrafX2](https://gitlab.com/GrafX2/grafX2), GPL-2.0-only.  
-**Source pin:** `678a0f54ea7f3eeebc3fa4135213ea63f45a28bd` (upstream master, 30 October 2026; GrafX2 2.9 line).
+**Source pin:** `678a0f54ea7f3eeebc3fa4135213ea63f45a28bd` (upstream master; checkout retrieved 30 October 2026, GrafX2 2.9 line).
 
 GrafX2 is a high-value standalone pixel-art and bitmap editor. Existing Amiga ports establish that the application and workflow are viable, but their SDL dependencies do not meet this port's native Open-family target.
 
