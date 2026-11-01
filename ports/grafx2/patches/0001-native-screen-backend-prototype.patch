@@ -1,0 +1,327 @@
+diff --git a/src/amigascreen.c b/src/amigascreen.c
+new file mode 100644
+index 0000000..9dcb0f6
+--- /dev/null
++++ b/src/amigascreen.c
+@@ -0,0 +1,321 @@
++/*
++ * GrafX2 native Amiga display backend.
++ *
++ * The AmigaOS 4 port in upstream history supplied the platform lineage; this
++ * backend targets the native Intuition/graphics APIs on AmigaOS 3.2. OpenGfx
++ * accelerates the standard graphics.library calls when installed.
++ *
++ * GrafX2 is GPL-2.0-only. See COPYRIGHT.txt and COPYING for upstream notices.
++ */
++#include <exec/types.h>
++#include <exec/memory.h>
++#include <graphics/displayinfo.h>
++#include <graphics/modeid.h>
++#include <intuition/intuition.h>
++#include <intuition/screens.h>
++#include <proto/exec.h>
++#include <proto/graphics.h>
++#include <proto/intuition.h>
++
++#include "global.h"
++#include "screen.h"
++#include "errors.h"
++#include "gfx2log.h"
++
++volatile int Allow_colorcycling = 1;
++
++static struct Screen *Native_screen;
++static struct Window *Native_window;
++static UBYTE *Native_pixels;
++static ULONG Native_width;
++static ULONG Native_height;
++static ULONG Native_pitch;
++
++static LONG Dirty_left;
++static LONG Dirty_top;
++static LONG Dirty_right;
++static LONG Dirty_bottom;
++
++struct Window *GFX2_AmigaNativeWindow(void)
++{
++  return Native_window;
++}
++
++static void Mark_dirty(LONG left, LONG top, LONG right, LONG bottom)
++{
++  if (left < 0) left = 0;
++  if (top < 0) top = 0;
++  if (right >= (LONG)Native_width) right = Native_width - 1;
++  if (bottom >= (LONG)Native_height) bottom = Native_height - 1;
++  if (left > right || top > bottom) return;
++
++  if (Dirty_left > Dirty_right || Dirty_top > Dirty_bottom)
++  {
++    Dirty_left = left;
++    Dirty_top = top;
++    Dirty_right = right;
++    Dirty_bottom = bottom;
++  }
++  else
++  {
++    if (left < Dirty_left) Dirty_left = left;
++    if (top < Dirty_top) Dirty_top = top;
++    if (right > Dirty_right) Dirty_right = right;
++    if (bottom > Dirty_bottom) Dirty_bottom = bottom;
++  }
++}
++
++static void Close_native_display(void)
++{
++  if (Native_window)
++  {
++    CloseWindow(Native_window);
++    Native_window = NULL;
++  }
++  if (Native_screen)
++  {
++    CloseScreen(Native_screen);
++    Native_screen = NULL;
++  }
++  if (Native_pixels)
++  {
++    FreeVec(Native_pixels);
++    Native_pixels = NULL;
++  }
++  Native_width = Native_height = Native_pitch = 0;
++  Dirty_left = Dirty_top = 1;
++  Dirty_right = Dirty_bottom = 0;
++}
++
++byte Get_Screen_pixel(int x, int y)
++{
++  if (!Native_pixels || x < 0 || y < 0 || x >= (int)Native_width || y >= (int)Native_height)
++    return 0;
++  return Native_pixels[(ULONG)y * Native_pitch + (ULONG)x];
++}
++
++void Set_Screen_pixel(int x, int y, byte value)
++{
++  if (!Native_pixels || x < 0 || y < 0 || x >= (int)Native_width || y >= (int)Native_height)
++    return;
++  Native_pixels[(ULONG)y * Native_pitch + (ULONG)x] = value;
++}
++
++byte *Get_Screen_pixel_ptr(int x, int y)
++{
++  if (!Native_pixels || x < 0 || y < 0 || x >= (int)Native_width || y >= (int)Native_height)
++    return NULL;
++  return Native_pixels + (ULONG)y * Native_pitch + (ULONG)x;
++}
++
++void Screen_FillRect(int x, int y, int w, int h, byte color)
++{
++  int row;
++  int col;
++  if (!Native_pixels || w <= 0 || h <= 0) return;
++  for (row = 0; row < h; ++row)
++  {
++    LONG py = y + row;
++    if (py < 0 || py >= (LONG)Native_height) continue;
++    for (col = 0; col < w; ++col)
++    {
++      LONG px = x + col;
++      if (px >= 0 && px < (LONG)Native_width)
++        Native_pixels[(ULONG)py * Native_pitch + (ULONG)px] = color;
++    }
++  }
++}
++
++void GFX2_Set_mode(int *width, int *height, int fullscreen)
++{
++  ULONG mode_id;
++  struct Screen *s;
++  struct Window *w;
++  (void)fullscreen; /* GrafX2's Amiga mode is an owned, borderless RTG screen. */
++
++  if (!width || !height || *width < 1 || *height < 1) return;
++  Close_native_display();
++
++  mode_id = BestModeID(BIDTAG_NominalWidth, (ULONG)*width,
++                       BIDTAG_NominalHeight, (ULONG)*height,
++                       BIDTAG_DesiredWidth, (ULONG)*width,
++                       BIDTAG_DesiredHeight, (ULONG)*height,
++                       BIDTAG_Depth, 8,
++                       TAG_DONE);
++  if (mode_id == (ULONG)INVALID_ID)
++  {
++    GFX2_Log(GFX2_ERROR, "No 8-bit Amiga display mode for %dx%d\n", *width, *height);
++    return;
++  }
++
++  s = OpenScreenTags(NULL,
++                     SA_DisplayID, mode_id,
++                     SA_Width, (ULONG)*width,
++                     SA_Height, (ULONG)*height,
++                     SA_Depth, 8,
++                     SA_Type, CUSTOMSCREEN,
++                     SA_Title, (ULONG)"GrafX2",
++                     SA_Quiet, TRUE,
++                     SA_AutoScroll, TRUE,
++                     TAG_DONE);
++  if (!s)
++  {
++    GFX2_Log(GFX2_ERROR, "OpenScreenTags failed for mode %08lx\n", mode_id);
++    return;
++  }
++
++  w = OpenWindowTags(NULL,
++                     WA_CustomScreen, (ULONG)s,
++                     WA_Left, 0,
++                     WA_Top, 0,
++                     WA_Width, (ULONG)s->Width,
++                     WA_Height, (ULONG)s->Height,
++                     WA_Borderless, TRUE,
++                     WA_Activate, TRUE,
++                     WA_ReportMouse, TRUE,
++                     WA_RMBTrap, TRUE,
++                     WA_IDCMP, IDCMP_MOUSEBUTTONS | IDCMP_MOUSEMOVE |
++                               IDCMP_RAWKEY | IDCMP_CLOSEWINDOW |
++                               IDCMP_REFRESHWINDOW,
++                     TAG_DONE);
++  if (!w)
++  {
++    CloseScreen(s);
++    GFX2_Log(GFX2_ERROR, "OpenWindowTags failed on GrafX2 screen\n");
++    return;
++  }
++
++  Native_width = s->Width;
++  Native_height = s->Height;
++  Native_pitch = Native_width;
++  Native_pixels = (UBYTE *)AllocVec(Native_pitch * Native_height,
++                                    MEMF_ANY | MEMF_CLEAR);
++  if (!Native_pixels)
++  {
++    CloseWindow(w);
++    CloseScreen(s);
++    GFX2_Log(GFX2_ERROR, "Unable to allocate %lu-byte chunky screen\n",
++             Native_pitch * Native_height);
++    return;
++  }
++
++  Native_screen = s;
++  Native_window = w;
++  *width = Native_width;
++  *height = Native_height;
++  Dirty_left = Dirty_top = 0;
++  Dirty_right = Native_width - 1;
++  Dirty_bottom = Native_height - 1;
++  Flush_update();
++}
++
++void Update_rect(short x, short y, unsigned short width, unsigned short height)
++{
++  LONG left = x * Pixel_width;
++  LONG top = y * Pixel_height;
++  LONG right;
++  LONG bottom;
++  if (!width || !height)
++  {
++    Mark_dirty(0, 0, Native_width - 1, Native_height - 1);
++    return;
++  }
++  right = left + (LONG)width * Pixel_width - 1;
++  bottom = top + (LONG)height * Pixel_height - 1;
++  Mark_dirty(left, top, right, bottom);
++}
++
++void Flush_update(void)
++{
++  if (!Native_window || !Native_pixels || Dirty_left > Dirty_right || Dirty_top > Dirty_bottom)
++    return;
++  WriteChunkyPixels(Native_window->RPort,
++                    Dirty_left, Dirty_top, Dirty_right, Dirty_bottom,
++                    Native_pixels + (ULONG)Dirty_top * Native_pitch + Dirty_left,
++                    Native_pitch);
++  Dirty_left = Dirty_top = 1;
++  Dirty_right = Dirty_bottom = 0;
++}
++
++void Update_status_line(short char_pos, short width)
++{
++  if (width <= 0) return;
++  Update_rect((short)((18 + char_pos * 8) * Menu_factor_X),
++              Menu_status_Y,
++              (unsigned short)(width * 8 * Menu_factor_X),
++              (unsigned short)(8 * Menu_factor_Y));
++}
++
++int GFX2_SetPalette(const T_Components *colors, int firstcolor, int ncolors)
++{
++  int i;
++  if (!Native_screen || !colors || firstcolor < 0 || ncolors < 0 || firstcolor + ncolors > 256)
++    return -1;
++  for (i = 0; i < ncolors; ++i)
++  {
++    const T_Components *c = &colors[i];
++    ULONG r = (ULONG)c->R * 0x01010101UL;
++    ULONG g = (ULONG)c->G * 0x01010101UL;
++    ULONG b = (ULONG)c->B * 0x01010101UL;
++    SetRGB32(&Native_screen->ViewPort, (ULONG)(firstcolor + i), r, g, b);
++  }
++  return 0;
++}
++
++void Clear_border(byte color)
++{
++  LONG content_w = Screen_width * Pixel_width;
++  LONG content_h = Screen_height * Pixel_height;
++  if (!Native_pixels) return;
++  if (content_w < (LONG)Native_width)
++    Screen_FillRect(content_w, 0, Native_width - content_w, Native_height, color);
++  if (content_h < (LONG)Native_height)
++    Screen_FillRect(0, content_h, Native_width, Native_height - content_h, color);
++  Mark_dirty(0, 0, Native_width - 1, Native_height - 1);
++}
++
++void Update_full_screen(void)
++{
++  Mark_dirty(0, 0, Native_width - 1, Native_height - 1);
++  Flush_update();
++}
++
++void Allow_drag_and_drop(int flag)
++{
++  (void)flag; /* AppWindow support is intentionally deferred to a later slice. */
++}
++
++void Define_icon(void)
++{
++  /* The application icon is provided by the Amiga drawer/tool project. */
++}
++
++void Set_mouse_position(void)
++{
++  /* Intuition owns the system pointer position. GrafX2 clips its own cursor. */
++}
++
++int GFX2_GetScreenSize(int *width, int *height)
++{
++  struct Screen workbench = {0};
++  if (!width || !height) return 0;
++  if (!GetScreenData((UBYTE *)&workbench, sizeof(workbench), WBENCHSCREEN, NULL))
++    return 0;
++  *width = workbench.Width;
++  *height = workbench.Height;
++  return 1;
++}
++
++int GFX2_MessageBox(const char *text, const char *caption, unsigned int type)
++{
++  struct EasyStruct es;
++  ULONG result;
++  (void)type;
++  es.es_StructSize = sizeof(es);
++  es.es_Flags = 0;
++  es.es_Title = (STRPTR)(caption ? caption : "GrafX2");
++  es.es_TextFormat = (STRPTR)(text ? text : "");
++  es.es_GadgetFormat = (STRPTR)"OK";
++  result = EasyRequestArgs(Native_window, &es, NULL, NULL);
++  return result != 0;
++}

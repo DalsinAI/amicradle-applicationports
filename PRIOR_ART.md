@@ -43,7 +43,7 @@ Confirmed AROS application prior art includes:
 - **MilkyTracker 1.05.01**
 - **ScreenRecorder**
 - **Radium**
-- **GrafX2 2.9**
+- **GrafX2 2.9** — [current AROS port project](https://github.com/tomaszstaniak/aros-grafx2) targets x86_64 and keeps SDL2; useful portability and behavior patches, not a native m68k port.
 - **LodePaint**
 - **ZunePaint**
 - **ZuneView**
@@ -86,6 +86,7 @@ High-value findings:
 - **FFmpegGUI** — proves the small-native-GUI-over-FFmpeg application pattern.
 - **VideoClipper** — another useful FFmpeg-driven workflow/UI reference.
 - **MilkyTracker** SDL2 lineage.
+- **GrafX2 2.0.874** — PPC release credited to Peter Gordon (2009); the AmigaOS 4 source adaptation is preserved in upstream GrafX2 history from 2008 (`ff9fc16`, followed by the OS4 drive/volume selector work in `cf54d4a`). This is the chosen source baseline for the AmiCradle revival; replace its SDL layer with native/Open-family interfaces.
 - **ImageMagick 6.8.9** binary/source port lineage.
 - **Blender 2.48** lineage.
 - **GIMP 2.6** via AmiCygnix/X11.
