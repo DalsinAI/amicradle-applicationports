@@ -2,7 +2,7 @@
 
 Snapshot date: **9 October 2026**
 
-Purpose: record existing AROS, classic AmigaOS, AmigaOS 4 and MorphOS application-port work that may reduce the cost or risk of AmigaChrome ports.
+Purpose: record existing AROS, classic AmigaOS, AmigaOS 4 and MorphOS application-port work that may reduce the cost or risk of AmiCradle ports.
 
 This is not a claim that historical source can always be reused directly. Licence, source availability, age, architecture and provenance must be checked per application.
 
@@ -86,13 +86,13 @@ High-value findings:
 - **FFmpegGUI** — proves the small-native-GUI-over-FFmpeg application pattern.
 - **VideoClipper** — another useful FFmpeg-driven workflow/UI reference.
 - **MilkyTracker** SDL2 lineage.
-- **GrafX2 2.0.874** — PPC release credited to Peter Gordon (2009); the AmigaOS 4 source adaptation is preserved in upstream GrafX2 history from 2008 (`ff9fc16`, followed by the OS4 drive/volume selector work in `cf54d4a`). This is the chosen source baseline for the AmigaChrome revival; replace its SDL layer with native/Open-family interfaces.
+- **GrafX2 2.0.874** — PPC release credited to Peter Gordon (2009); the AmigaOS 4 source adaptation is preserved in upstream GrafX2 history from 2008 (`ff9fc16`, followed by the OS4 drive/volume selector work in `cf54d4a`). This is the chosen source baseline for the AmiCradle revival; replace its SDL layer with native/Open-family interfaces.
 - **ImageMagick 6.8.9** binary/source port lineage.
 - **Blender 2.48** lineage.
 - **GIMP 2.6** via AmiCygnix/X11.
 - subtitle/editor utilities such as **SimpleSub**.
 
-The main architectural lesson is that OS4 proves many large applications can be made Amiga-aware, but AmigaChrome should avoid copying heavyweight X11/GTK/Cygnix frontend strategies when an OpenGadTools/Open-family solution is cleaner.
+The main architectural lesson is that OS4 proves many large applications can be made Amiga-aware, but AmiCradle should avoid copying heavyweight X11/GTK/Cygnix frontend strategies when a GFOpenGadTools/Open-family solution is cleaner.
 
 ## MorphOS Storage
 
@@ -108,7 +108,7 @@ High-value findings:
   - corroborates AROS/OS4 tracker portability.
 - native audio-editor applications such as **WaveEdit / SoundFX** for UI/feature reference.
 
-## Implications for AmigaChrome
+## Implications for AmiCradle
 
 Emulator-specific implications and platform strategy live in `DalsinAI/amigachrome-gameports/EMULATOR_PRIOR_ART.md`.
 
@@ -130,7 +130,7 @@ No verified direct Audacity port was found in the official AROS sweep.
 
 Recommended architecture:
 
-`OpenAudioEdit UI -> SoX / libsndfile / FFmpeg / codec libs -> OpenAudio`
+`OpenAudioEdit UI -> SoX / libsndfile / FFmpeg / codec libs -> GFOpenAudio`
 
 Use MorphOS audio editors and Audacity itself as feature/workflow references.
 

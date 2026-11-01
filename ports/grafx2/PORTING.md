@@ -1,4 +1,4 @@
-# GrafX2 for AmigaChrome
+# GrafX2 for AmiCradle
 
 ## Intake status
 
@@ -29,22 +29,22 @@ Treat this OS4 lineage as the porting baseline: first recover and map its Amiga-
 | MorphOS, PPC | MorphOS Storage has GrafX2 2.9 by BeWorld. Its readme says the 23 September 2026 update follows upstream's latest commit and builds with SDL2, the MorphOS 3.20 SDK, and Lua 5.4. | Current feature/packaging reference; not a native backend to carry forward. |
 | AROS x86_64 (AROS One ABIv11 first; mainline ABIv1 secondary) | [Current AROS port project](https://github.com/tomaszstaniak/aros-grafx2) pins upstream commit `f84cb09dc59d706d6e7b28778b01ba911f52298c` and maintains patches `0001`–`0012`. It retains SDL2. Patches include PNG stdio callbacks, software-renderer preference, AROS file paths/locks, no-console startup and SDL2 mouse/key fallbacks. | Strong behavior and packaging reference, but it targets x86_64 and keeps SDL2; it is not the m68k AROS/native Open-family implementation. Mine the non-SDL portability changes and translate the needed input/display behavior to native APIs. |
 
-The current upstream `src/Makefile` has legacy AmigaOS 3/4, AROS, and MorphOS branches, but those recipes select SDL 1.2 (`sdl-config`) and SDL_image. The current MorphOS package uses SDL2. These are useful build-history clues; none is the approved AmigaChrome implementation.
+The current upstream `src/Makefile` has legacy AmigaOS 3/4, AROS, and MorphOS branches, but those recipes select SDL 1.2 (`sdl-config`) and SDL_image. The current MorphOS package uses SDL2. These are useful build-history clues; none is the approved AmiCradle implementation.
 
 ## Source shape and native seams
 
-- **Display and palette:** `sdlscreen.c` owns SDL video-mode setup, the indexed 8-bit display surface, palette updates, dirty rectangles, and screen blits. Define a separate Amiga backend and map presentation to native screens/bitmaps and graphics.library calls, using OpenGfx/OpenGPU acceleration where the native API supports it.
-- **Input and window events:** `input.c` contains SDL event decoding and currently handles mouse, keyboard, window focus/resize, wheel and joystick events. Use Intuition IDCMP for the desktop mouse/keyboard/window lifecycle; map optional controllers through OpenInput only where its game-controller API fits. Keep GrafX2's existing action/tool logic independent of event transport.
+- **Display and palette:** `sdlscreen.c` owns SDL video-mode setup, the indexed 8-bit display surface, palette updates, dirty rectangles, and screen blits. Define a separate Amiga backend and map presentation to native screens/bitmaps and graphics.library calls, using OpenGfx/GFOpenGPU acceleration where the native API supports it.
+- **Input and window events:** `input.c` contains SDL event decoding and currently handles mouse, keyboard, window focus/resize, wheel and joystick events. Use Intuition IDCMP for the desktop mouse/keyboard/window lifecycle; map optional controllers through GFOpenInput only where its game-controller API fits. Keep GrafX2's existing action/tool logic independent of event transport.
 - **Image loading:** SDL_image is linked by the Amiga recipes and is used by the current source. Audit each loader and choose native DataTypes/OpenImage paths or the approved static image libraries, preserving GrafX2's supported-format behavior where feasible.
 - **Text:** The Amiga make recipes set `NOTTF=1`; GrafX2 has its own UI bitmap-font path. Keep this as the baseline, and assess OpenFont separately for optional scalable text.
-- **Audio:** no SDL audio API calls were found in the pinned source. OpenAudio is not part of the initial port.
+- **Audio:** no SDL audio API calls were found in the pinned source. GFOpenAudio is not part of the initial port.
 - **Other SDL touch points:** SDL mode enumeration in `init.c`, screen helpers in `graph.c`, window-system events in `loadsave.c` / `osdep.c`, and SDL timing in input. Keep these behind the platform backend or replace them with appropriate Exec/Intuition timing and system messages.
 
 Do not add a compatibility layer that makes GrafX2 appear to use SDL while retaining SDL as a runtime dependency. The port should have an explicit native Amiga API selection in the build.
 
 ## Available OS4 test target
 
-AmigaChrome's AC460/Sam460ex work records AmigaOS 4.1 booting to Workbench under the PPC460 JIT. The same project has an experimental `os4` GCC16 stove and OS4 SDK 54.25, fetched on the test machine and not committed.
+AmiCradle's AC460/Sam460ex work records AmigaOS 4.1 booting to Workbench under the PPC460 JIT. The same project has an experimental `os4` GCC16 stove and OS4 SDK 54.25, fetched on the test machine and not committed.
 
 The linked `daletop` test device is offline in this workspace, so the OS4 compile/run gate cannot be executed here yet. When it is reachable, build the current port against that stove and run the OS4-derived code path in the AC460 guest. This is a useful first smoke test for Amiga-specific file/volume behavior; it does not qualify the 68k ABI or the final native Open-family backend.
 
@@ -80,6 +80,6 @@ The linked `daletop` test device is offline in this workspace, so the OS4 compil
 ## Current implementation checkpoint
 
 - Added `patches/0001-native-screen-backend-prototype.patch`: an initial Intuition/graphics.library screen backend with an 8-bit chunky buffer, palette updates and dirty-region presentation through `WriteChunkyPixels`.
-- The backend translation unit compiles with OpenAmigaGCC 16.2.0-open3 and the NDK 3.2 R4 headers for `-m68040 -m68881 -mcrt=nix20`.
+- The backend translation unit compiles with GFOpenAmigaGCC 16.2.0-open3 and the NDK 3.2 R4 headers for `-m68040 -m68881 -mcrt=nix20`.
 - This is **not yet an integrated GrafX2 build**. Startup, mode enumeration, SDL image loading and SDL-based input/event code still need native implementations or conditional paths. Drag and drop, icon handling and pointer warping are also placeholders in this prototype.
 - The AC460/Sam460ex OS4.1 test guest is documented on `daletop`, but that remote device was offline at the last availability check (30 October 2026). No target runtime test has been run.
