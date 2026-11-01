@@ -11,7 +11,7 @@ None yet.
 
 ## Licences
 
-Each port keeps the licence of the program it ports, recorded beside it. The Team's own build scripts and patches are MIT licensed and free, Copyright (c) 2026 AmigaChrome Team.
+Each port keeps the licence of the program it ports, recorded beside it. The Team's own build scripts and patches are MIT licensed and free, Copyright (c) 2026 AmiCradle Team.
 
 
 ## Working documents
