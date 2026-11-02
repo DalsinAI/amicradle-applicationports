@@ -64,7 +64,7 @@ Confirmed AROS application prior art includes:
 
 ### Emulation
 
-Emulator and emulator-frontend prior art is maintained in `DalsinAI/amigachrome-gameports/EMULATOR_PRIOR_ART.md`. Emulators are treated as part of the games catalogue rather than the productivity/application backlog.
+Emulator and emulator-frontend prior art is maintained in `DalsinAI/amicradle-gameports/EMULATOR_PRIOR_ART.md`. Emulators are treated as part of the games catalogue rather than the productivity/application backlog.
 
 ## Aminet / classic AmigaOS
 
@@ -110,7 +110,7 @@ High-value findings:
 
 ## Implications for AmiCradle
 
-Emulator-specific implications and platform strategy live in `DalsinAI/amigachrome-gameports/EMULATOR_PRIOR_ART.md`.
+Emulator-specific implications and platform strategy live in `DalsinAI/amicradle-gameports/EMULATOR_PRIOR_ART.md`.
 
 ### FFmpeg / transcoding
 
