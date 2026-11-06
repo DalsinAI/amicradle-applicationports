@@ -1,0 +1,59 @@
+OpenCPN 5.14.2 for AmigaOS 3: Linux-only CAN interface list (libdnet) and Garmin host mode (jeeps, termios) left out.
+
+Copyright (c) 2026 AmiCradle Team (these changes; GPL v2 or later, as OpenCPN)
+
+diff --git a/gui/src/connection_edit.cpp b/gui/src/connection_edit.cpp
+index a5addd1..6491c96 100644
+--- a/gui/src/connection_edit.cpp
++++ b/gui/src/connection_edit.cpp
+@@ -46,8 +46,10 @@
+ #include <serial/serial.h>
+ #include <sys/ioctl.h>
+ #include <sys/socket.h>
++#if defined(__linux__) && !defined(__ANDROID__)
+ #include "dnet.h"
+ #endif
++#endif
+ 
+ #ifdef __ANDROID__
+ #include "androidUTIL.h"
+diff --git a/gui/src/initwiz/wiz_ui.cpp b/gui/src/initwiz/wiz_ui.cpp
+index 31458a6..f821d23 100644
+--- a/gui/src/initwiz/wiz_ui.cpp
++++ b/gui/src/initwiz/wiz_ui.cpp
+@@ -54,8 +54,10 @@
+ #include "model/svg_utils.h"
+ #ifndef __ANDROID__
+ #include "serial/serial.h"
++#if defined(__linux__) && !defined(__ANDROID__)
+ #include "dnet.h"
+ #endif
++#endif
+ 
+ #define RECEIVE_BUFFER_LENGTH 256
+ 
+diff --git a/model/src/comm_n0183_output.cpp b/model/src/comm_n0183_output.cpp
+index c2ae9c8..70cfb6b 100644
+--- a/model/src/comm_n0183_output.cpp
++++ b/model/src/comm_n0183_output.cpp
+@@ -429,6 +429,7 @@ int SendRouteToGPS_N0183(Route* pr, const wxString& com_name,
+       registry.Deactivate(me);
+     }
+ 
++#ifdef USE_GARMINHOST
+     int lret_val;
+     dlg_ctx.set_value(20);
+ 
+@@ -468,6 +469,12 @@ int SendRouteToGPS_N0183(Route* pr, const wxString& com_name,
+       ret_val = 0;
+     }
+ 
++#else
++    // no Garmin host mode in this build
++    ret_val = ERR_GARMIN_INITIALIZE;
++    goto ret_point;
++#endif
++
+   ret_point:
+ 
+     dlg_ctx.set_value(100);

@@ -1,0 +1,2 @@
+Lab vehicle only, not for merge: a copy of the OpenCPN port, built here by
+Cradle's stove until DalsinAI/gfamigaopencpn exists and is on Cradle's list.

@@ -1,0 +1,46 @@
+OpenCPN 5.14.2 for AmigaOS 3: build with OpenGL off. Charts are drawn with wxDC. The GL canvas header becomes a name only, and gl_headers.h gives the GL types and GLU's tesselator, which the region and S-52 code use either way.
+
+Copyright (c) 2026 AmiCradle Team (these changes; GPL v2 or later, as OpenCPN)
+
+diff --git a/gui/include/gui/gl_chart_canvas.h b/gui/include/gui/gl_chart_canvas.h
+index 635a34b..0ea34d1 100644
+--- a/gui/include/gui/gl_chart_canvas.h
++++ b/gui/include/gui/gl_chart_canvas.h
+@@ -24,6 +24,14 @@
+ #ifndef __GLCHARTCANVAS_H__
+ #define __GLCHARTCANVAS_H__
+ 
++#ifndef ocpnUSE_GL
++// OpenGL is off (AmigaOS 3): charts are drawn with wxDC, and the GL canvas
++// is only a name
++#include "ocpn_gl_options.h"
++class glChartCanvas;
++class glTextureManager;
++#else
++
+ #include <array>
+ #include <string>
+ #include <unordered_map>
+@@ -355,4 +363,6 @@ protected:
+   DECLARE_EVENT_TABLE()
+ };
+ 
++#endif  // ocpnUSE_GL
++
+ #endif
+diff --git a/gui/include/gui/gl_headers.h b/gui/include/gui/gl_headers.h
+index 9361a2f..baac386 100644
+--- a/gui/include/gui/gl_headers.h
++++ b/gui/include/gui/gl_headers.h
+@@ -46,4 +46,11 @@ typedef void (*_GLUfuncptr)();
+ #else
+ #error platform not supported.
+ #endif  // _WIN32
++#else
++// OpenGL off: the GL types its headers name, and GLU's tesselator (libs/glu)
++#if defined(__linux__)
++#include <GL/glew.h>
++#endif
++#include <GL/gl.h>
++#include <GL/glu.h>
+ #endif  // ocpnUSE_GL
