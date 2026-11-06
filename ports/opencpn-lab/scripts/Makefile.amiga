@@ -27,7 +27,7 @@ endif
 
 L := $(SRC)/libs
 DEFS := -DTIXML_USE_STL -DRAPIDJSON_HAS_STDSTRING=1 -DSQLITE_OMIT_LOAD_EXTENSION \
-    -DSQLITE_THREADSAFE=1 -DUSE_WX_LOGGING -DwxUSE_WEBVIEW=0 -DOCPN_AMIGA \
+    -DSQLITE_THREADSAFE=1 -DSQLITE_OMIT_WAL -DSQLITE_MAX_MMAP_SIZE=0 -DHAVE_NANOSLEEP=0 -DHAVE_USLEEP=1 -DUSE_WX_LOGGING -DwxUSE_WEBVIEW=0 -DOCPN_AMIGA \
     -DocpnUSE_SVG -DocpnUSE_wxBitmapBundle -DOCPN_NO_LIBARCHIVE -DOCPN_NO_CURL -DOCPN_NO_SIGNALK -DOCPN_NO_REST_IO '-DPREFIX="PROGDIR:"'
 INCS := -I$(PORT)/compat/include -I$(PORT)/src $(GLINC) \
     -I$(SRC)/gui/include/gui -I$(SRC)/gui/include -I$(SRC)/include -I$(SRC)/model/include \
@@ -40,7 +40,7 @@ INCS := -I$(PORT)/compat/include -I$(PORT)/src $(GLINC) \
     -I$(L)/observable/include -I$(L)/picosha2 -I$(L)/pugixml -I$(RJ)/include \
     -I$(L)/s52plib/src -I$(L)/sqlite/include -I$(L)/o_sound/include -I$(L)/o_sound/include/o_sound -I$(L)/wxJSON/include \
     -I$(L)/nlohmann-json -I$(L)/wxservdisc
-CFLAGS   := $(OPT) -MMD -MP $(DEFS) $(INCS) -w
+CFLAGS   := $(OPT) -MMD -MP -include amiga_first.h $(DEFS) $(INCS) -w
 # -Wno-template-body: GCC 16 makes rapidjson 1.1.0's unused StringRef assignment an error
 CXXFLAGS := $(OPT) -MMD -MP -std=gnu++17 -include amiga_first.h $(DEFS) $(INCS) $(shell $(WXCONFIG) --cxxflags) -w \
     -Wno-template-body -fno-strict-aliasing

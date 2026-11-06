@@ -11,7 +11,7 @@ SHAPELIB_COMMIT=8e23c958f3dd1f5cc37139ce4f4e2824a84bc56a
 # GFOpenWX Toolkit (wxWidgets on GFOpenLayout): draft PR #4 (main a0b8736 with
 # sockets, book controls, printing, wizards) until it is merged
 WXT_REPO=https://github.com/DalsinAI/gfopenwxtoolkit
-WXT_COMMIT=d773fc3825f5557a87f6652fe1e1ebd2c8cc1b1f
+WXT_COMMIT=bf1e2f447158a54f9093028a44cacab4b8bb5fb3
 # fpuauto (amicradle-guest common/fpuauto): the FPU when there is one
 FPUAUTO_REPO=https://github.com/DalsinAI/amicradle-guest
 FPUAUTO_COMMIT=4a784c84b878fe0e9abade7006e67e1ded9b165c
