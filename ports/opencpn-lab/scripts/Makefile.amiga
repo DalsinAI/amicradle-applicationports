@@ -40,8 +40,10 @@ INCS := -I$(PORT)/compat/include -I$(PORT)/src $(GLINC) \
     -I$(L)/observable/include -I$(L)/picosha2 -I$(L)/pugixml -I$(RJ)/include \
     -I$(L)/s52plib/src -I$(L)/sqlite/include -I$(L)/o_sound/include -I$(L)/o_sound/include/o_sound -I$(L)/wxJSON/include \
     -I$(L)/nlohmann-json -I$(L)/wxservdisc
-CFLAGS   := $(OPT) $(DEFS) $(INCS) -w
-CXXFLAGS := $(OPT) -std=gnu++17 $(DEFS) $(INCS) $(shell $(WXCONFIG) --cxxflags) -w -fno-strict-aliasing
+CFLAGS   := $(OPT) -MMD -MP $(DEFS) $(INCS) -w
+# -Wno-template-body: GCC 16 makes rapidjson 1.1.0's unused StringRef assignment an error
+CXXFLAGS := $(OPT) -MMD -MP -std=gnu++17 -include amiga_first.h $(DEFS) $(INCS) $(shell $(WXCONFIG) --cxxflags) -w \
+    -Wno-template-body -fno-strict-aliasing
 
 include $(PORT)/scripts/sources.mk
 
@@ -81,3 +83,6 @@ $(OUT)/OpenCPN: $(OBJS) $(patsubst %,$(OBJ)/shp/%.o,$(SHP_SRC))
 	$(CXX) $(LDFLAGS) -o $@ $^ $(shell $(WXCONFIG) --libs std,aui,html,xml,richtext,adv) $(SYSLIBS) -lm
 
 .PHONY: all
+
+# each object's headers, from -MMD
+-include $(OBJS:.o=.d)

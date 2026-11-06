@@ -63,21 +63,33 @@ fetch shapelib "$SHAPELIB_REPO" "$SHAPELIB_COMMIT"
 fetch opencpn "$OCPN_REPO" "$OCPN_COMMIT"
 OC="$WORK/deps/opencpn"
 
-# ---- OpenCPN's source, with its library patches and ours (again when they change)
+# ---- OpenCPN's source, with its library patches and ours (again when they
+# change). The tree is made afresh and copied over the last one by content,
+# so only files a patch changed get new times and make rebuilds only those
+# (the makefile keeps each object's header list)
 SRC="$WORK/opencpn-$OCPN_VERSION"; RJ="$WORK/rapidjson"; SHP="$WORK/shapelib"
 PSUM=$(cat "$HERE"/patches/*.patch "$HERE/opencpn.lock" | sha256sum | cut -c1-16)
 if [ "$(cat "$SRC/.patched" 2>/dev/null)" != "$PSUM" ]; then
-    rm -rf "$SRC" "$RJ" "$SHP" "$WORK/obj"; mkdir -p "$SRC" "$RJ" "$SHP"
-    cp -R "$OC"/. "$SRC"/; rm -rf "$SRC/.git"
-    cp -R "$WORK/deps/rapidjson"/. "$RJ"/; cp -R "$WORK/deps/shapelib"/. "$SHP"/; rm -rf "$RJ/.git" "$SHP/.git"
-    for p in "$SRC"/libs/rapidjson/patches/*.patch; do patch -s -d "$RJ" -p1 --ignore-whitespace < "$p"; done
-    for p in "$SRC"/libs/shapelib/patches/*.patch; do patch -s -d "$SHP" -p1 --ignore-whitespace < "$p"; done
-    for p in "$SRC"/libs/ShapefileCpp/patches/*.patch; do
-        patch -s -d "$SRC/libs/ShapefileCpp/ShapeFileCpp-b2681f8" -p1 --ignore-whitespace < "$p"
+    F="$WORK/fresh"; rm -rf "$F"; mkdir -p "$F/opencpn" "$F/rapidjson" "$F/shapelib"
+    cp -R "$OC"/. "$F/opencpn"/; rm -rf "$F/opencpn/.git"
+    cp -R "$WORK/deps/rapidjson"/. "$F/rapidjson"/; cp -R "$WORK/deps/shapelib"/. "$F/shapelib"/
+    rm -rf "$F/rapidjson/.git" "$F/shapelib/.git"
+    for p in "$F"/opencpn/libs/rapidjson/patches/*.patch; do patch -s -d "$F/rapidjson" -p1 --ignore-whitespace < "$p"; done
+    for p in "$F"/opencpn/libs/shapelib/patches/*.patch; do patch -s -d "$F/shapelib" -p1 --ignore-whitespace < "$p"; done
+    for p in "$F"/opencpn/libs/ShapefileCpp/patches/*.patch; do
+        patch -s -d "$F/opencpn/libs/ShapefileCpp/ShapeFileCpp-b2681f8" -p1 --ignore-whitespace < "$p"
     done
     for p in "$HERE"/patches/*.patch; do
-        patch -s -d "$SRC" -p1 < "$p" || { echo "patch failed: $p"; exit 1; }
+        patch -s -d "$F/opencpn" -p1 < "$p" || { echo "patch failed: $p"; exit 1; }
     done
+    mkdir -p "$SRC" "$RJ" "$SHP"
+    if command -v rsync >/dev/null 2>&1; then
+        rsync -rc --delete "$F/opencpn/" "$SRC/"; rsync -rc --delete "$F/rapidjson/" "$RJ/"
+        rsync -rc --delete "$F/shapelib/" "$SHP/"
+    else
+        rm -rf "$SRC" "$RJ" "$SHP" "$WORK/obj"; mv "$F/opencpn" "$SRC"; mv "$F/rapidjson" "$RJ"; mv "$F/shapelib" "$SHP"
+    fi
+    rm -rf "$F"
     echo "$PSUM" > "$SRC/.patched"
 fi
 
@@ -88,8 +100,10 @@ nice -n 19 make -k -j"$JOBS" -f "$HERE/scripts/Makefile.amiga" SRC="$SRC" RJ="$R
     SPECS="$HERE/scripts/m68k-soft-m68040.specs" FPUSPECS="$FA/fpuauto.specs" FPULIB="$FAL" \
     > "$WORK/opencpn.log" 2>&1 || {
         echo "objects: $(find "$WORK/obj" -name '*.o' | wc -l)"
-        grep -E 'error|Error|undefined' "$WORK/opencpn.log" | cut -c1-300 | head -60
-        tail -15 "$WORK/opencpn.log" | cut -c1-300; }
+        # each error once, without make's own lines, the first 150
+        grep -E 'error:|undefined reference' "$WORK/opencpn.log" | sed "s#$SRC/##g; s#$WORK/##g" \
+            | cut -c1-240 | awk '!seen[$0]++' | head -150
+        tail -5 "$WORK/opencpn.log" | cut -c1-240; }
 [ -f "$OUT/OpenCPN" ] || exit 1
 ls -l "$OUT/OpenCPN"
 OD="$TC/bin/m68k-amigaos-objdump"
