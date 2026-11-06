@@ -92,9 +92,9 @@ PORT_SRC := net_parked.cpp
 # code use with OpenGL on or off; the host check links the system's GLU
 GLU_SRC :=
 ifneq ($(HOST),1)
-PORT_SRC += serial_amiga.cc gl_none.c
+PORT_SRC += serial_amiga.cc gl_none.c libnix_extra.c
 GLU_SRC := $(addprefix libs/glu/libtess/,tess.c mesh.c priorityq.c sweep.c tessmono.c normal.c \
-    memalloc.c geom.c dict.c render.c) libs/glu/libutil/error.c
+    memalloc.c geom.c dict.c render.c) libs/glu/libutil/error.c libs/glu/libutil/glue.c
 endif
 
 OCPN_SRC := $(addprefix model/src/,$(addsuffix .cpp,$(filter-out $(NONET_MODEL),$(MODEL_SRC)))) \

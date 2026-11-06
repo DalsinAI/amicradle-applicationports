@@ -16,6 +16,9 @@
 #include "model/mdns_service.h"
 #include "model/peer_client.h"
 
+// Signal K servers found by mDNS (none: mDNS is parked).
+std::vector<ocpn_DNS_record_t> g_sk_servers;
+
 static const char* const kNoNet = "not in this build of OpenCPN";
 
 // ---- downloads (model/src/downloader.cpp uses curl)
