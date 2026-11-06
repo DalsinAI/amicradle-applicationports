@@ -78,15 +78,16 @@ LIB_SRC := \
 
 SHP_SRC := shpopen.c dbfopen.c safileio.c sbnsearch.c shptree.c
 
-# Not built yet: the network side (NMEA and NMEA 2000 over TCP/UDP, Signal K,
-# the REST server and peer-to-peer route sharing, mDNS, downloads with curl).
-# The toolkit main has no sockets yet; src/amiga_nonet.cpp answers for them.
-NONET_MODEL := certificates comm_drv_n0183_net comm_drv_n2k_net comm_drv_signalk_net rest_server \
-    mdns_cache mdns_query mdns_service peer_client downloader
-NONET_GUI := peer_client_dlg send_to_peer_dlg
+# Not built yet (src/net_parked.cpp answers for them): downloads and sending
+# routes to another OpenCPN (curl), the REST server's certificate (OpenSSL),
+# mDNS. Signal K (IXWebSocket) and the REST server's io thread (mongoose) are
+# compiled out by patches/0005. NMEA 0183 and NMEA 2000 over TCP/UDP are in,
+# on the toolkit's sockets.
+NONET_MODEL := certificates downloader peer_client mdns_query mdns_service comm_drv_signalk_net
+NONET_GUI :=
 
 # Amiga parts of this port (src/)
-PORT_SRC :=
+PORT_SRC := net_parked.cpp
 # GLU's tesselator (OpenCPN's own copy, libs/glu), which its region and S-52
 # code use with OpenGL on or off; the host check links the system's GLU
 GLU_SRC :=

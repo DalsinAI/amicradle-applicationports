@@ -28,7 +28,7 @@ endif
 L := $(SRC)/libs
 DEFS := -DTIXML_USE_STL -DRAPIDJSON_HAS_STDSTRING=1 -DSQLITE_OMIT_LOAD_EXTENSION \
     -DSQLITE_THREADSAFE=1 -DUSE_WX_LOGGING -DwxUSE_WEBVIEW=0 -DOCPN_AMIGA \
-    -DocpnUSE_SVG -DocpnUSE_wxBitmapBundle -DOCPN_NO_LIBARCHIVE '-DPREFIX="PROGDIR:"'
+    -DocpnUSE_SVG -DocpnUSE_wxBitmapBundle -DOCPN_NO_LIBARCHIVE -DOCPN_NO_CURL -DOCPN_NO_SIGNALK -DOCPN_NO_REST_IO '-DPREFIX="PROGDIR:"'
 INCS := -I$(PORT)/compat/include -I$(PORT)/src $(GLINC) \
     -I$(SRC)/gui/include/gui -I$(SRC)/gui/include -I$(SRC)/include -I$(SRC)/model/include \
     -I$(SRC)/resources -I$(SRC)/gui/src/mbtiles -I$(SRC)/gui/src/s57/include \
@@ -66,6 +66,9 @@ $(OBJ)/libs/gui/%: CXXFLAGS := -I$(L)/gui/include $(CXXFLAGS)
 
 $(OBJ)/libs/glu/%: CFLAGS := -I$(L)/glu/include -I$(L)/glu/libtess $(CFLAGS)
 
+$(OBJ)/port/%.cpp.o: $(PORT)/src/%.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 $(OBJ)/port/%.cc.o: $(PORT)/src/%.cc
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
